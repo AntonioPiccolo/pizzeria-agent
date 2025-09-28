@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "@langchain/langgraph": "^0.4.5",
+    "@langchain/openai": "^0.6.9",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.9.2",
+    "zod": "^3.25.76"
+  },
+  "name": "pizzeria-agent",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx index.mts",
+    "dev": "tsx watch index.mts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Antonio Piccolo",
+  "license": "ISC",
+  "description": "Pizzeria Agent - help the user to order pizza or reserve a table",
+  "devDependencies": {
+    "tsx": "^4.20.6"
+  }
+}
