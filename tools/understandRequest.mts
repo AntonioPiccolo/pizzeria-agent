@@ -22,6 +22,7 @@ export const requestDetection = tool(({ intent }: { intent: string }) => {
   name: 'request_detection',
   description: `Capisci con chiarezza se la richiesta è per prenotare un tavolo, ordinare delle pizze d'asporto o con consegnare delle pizze a domicilio.`,
   schema: z.object({
-    intent: z.enum(['take-away', 'delivery', 'table']).describe(`Capisci con chiarezza se la richiesta è per prenotare un tavolo, ordinare delle pizze d'asporto o con consegna delle pizze a domicilio.`).optional(),
+    intent: z.enum(['bookTable', 'takeAway', 'delivery'])
+    .describe(`La richiesta del cliente, prenotare un tavolo, ordinare delle pizze d'asporto o con consegna delle pizze a domicilio.`),
   })
 })

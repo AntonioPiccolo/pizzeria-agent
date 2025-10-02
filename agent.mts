@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 import { StateGraph, Annotation } from "@langchain/langgraph";
 import { understandRequest } from './nodes/understandRequest.mjs';
+import { bookTable } from './nodes/bookTable.mjs'
+import { takeAway } from './nodes/takeAway.mjs'
+import { delivery } from './nodes/delivery.mjs'
 import { transfertCall } from './nodes/transfertCall.mjs';
 import { addConversationMessage } from './utils/prompt.mjs';
 
@@ -15,6 +18,10 @@ export const StateAnnotation = Annotation.Root({
   conversation: Annotation<string>({
     reducer: (_prev, next) => next,
     default: () => ""
+  }),
+  call: Annotation<void>({
+    reducer: (_prev, next) => next,
+    default: () => {}
   })
 });
 
@@ -23,9 +30,9 @@ async function start(state: typeof StateAnnotation.State) {
   const question = "Salve, sono l'assistente vocale della pizzeria Al Fornareto, come posso aiutarla?";
   console.log(question);
 
-  const conversation = addConversationMessage(state.conversation, "Salve, sono l'assistente vocale della pizzeria Al Fornareto, come posso aiutarla?", "agent");
+  const conversation = addConversationMessage(state.conversation, question, "agent");
 
-  return { next: "understandRequest", conversation: conversation };
+  return { next: "understandRequest", conversation };
 }
 
 // Routing
@@ -35,6 +42,12 @@ function understandRequestRoute(state: typeof StateAnnotation.State): string {
       return "start";
     case "understandRequest":
       return "understandRequest";
+    case "bookTable":
+      return "bookTable"
+    case "takeAway":
+      return "takeAway"
+    case "delivery":
+      return "delivery"
     case "transfertCall":
       return "transfertCall";
     case "end":
@@ -49,13 +62,20 @@ const workflow = new StateGraph(StateAnnotation)
   // Nodes
   .addNode("start", start)
   .addNode("understandRequest", understandRequest)
+  .addNode("bookTable", bookTable)
+  .addNode("takeAway", takeAway)
+  .addNode("delivery", delivery)
   .addNode("transfertCall", transfertCall)
   // Edges
   .addEdge("__start__", "start")
   .addEdge("start", "understandRequest")
+  .addEdge("bookTable", "__end__")
+  .addEdge("takeAway", "__end__")
+  .addEdge("delivery", "__end__")
+  .addEdge("transfertCall", "__end__")
   // Conditional edges
   .addConditionalEdges("understandRequest", understandRequestRoute)
-  .addEdge("transfertCall", "__end__")
+  
 
 const app = workflow.compile();
 

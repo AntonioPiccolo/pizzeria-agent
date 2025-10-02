@@ -12,22 +12,23 @@ const llm = new ChatOpenAI({
   temperature: 0,
 });
 
-const understandRequestTools = [transfertCall, askAgainToUnderstandRequest, requestDetection]
+const tools = [transfertCall, askAgainToUnderstandRequest, requestDetection]
 
-// LLM with tools for all models
-const understandRequestModel = llm.bindTools(understandRequestTools) as ChatOpenAI;
+const model = llm.bindTools(tools) as ChatOpenAI;
 
-// Understand request node
 export async function understandRequest(state: typeof StateAnnotation.State) {
+  console.info("[UNDERSTAND-REQUEST] Start node")
+
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout
   });
   const userInput: string = await rl.question("\n> ");
-
   rl.close();
 
-  const result = await understandRequestModel.invoke([
+  let conversation = state.conversation
+  console.info(`[UNDERSTAND-REQUEST] Conversation: ${conversation}`)
+  const result = await model.invoke([
     new SystemMessage(`# Sei il proprietario di una pizzeria al Fornareto e devi capire la richiesta del cliente.
 
       ## Le azioni che può fare l'assistente sono SOLAMENTE le seguenti:
@@ -48,35 +49,47 @@ export async function understandRequest(state: typeof StateAnnotation.State) {
       - Se domanda/richiesta non è del tutto chiara, esempio: 'Vorrei delle pizze' (si intende pizze d'asporto o consegnare a domicilio?)
       
       ## Storico Conversazione:
-      ${state.conversation}
+      ${conversation}
       `),
     new HumanMessage(userInput)
   ]);
 
-  let conversation = addConversationMessage(state.conversation, userInput, "user");
+  conversation = addConversationMessage(conversation, userInput, "user");
 
-  if (result.tool_calls && result.tool_calls.length > 0) {
-    const toolName = result.tool_calls[0].name;
+  if (result.tool_calls && result?.tool_calls.length > 0) {
+    const tool = result.tool_calls[0].name;
 
-    switch (toolName) {
-      case "ask_again_to_understand_request":
-        const question = result.tool_calls[0].args?.question;
-        console.log(`\n${question}`);
+    console.info(`[UNDERSTAND-REQUEST] Tool selected: ${tool}`)
 
-        conversation = addConversationMessage(conversation, question, "agent");
+    if (tool === "ask_again_to_understand_request") {
+      const question = result.tool_calls[0].args?.question;
+      console.log(`\n${question}`);
 
-        return { next: "understandRequest", conversation: conversation };
-      case "request_detection":
-        const intent = result.tool_calls[0].args?.intent;
-        console.log(`\n${intent}`);
+      conversation = addConversationMessage(conversation, question, "agent");
 
-        return { next: "end", intent: intent, conversation: "" };
-      case "transfert_call_to_operator":
-        return { next: "transfertCall" };
-      default:
-        return { next: "end" };
+      return { next: "understandRequest", conversation };
     }
-  }
 
-  return { next: "end" };
+    if (tool === "request_detection") {
+      const intent = result.tool_calls[0].args?.intent;
+      console.log(`\n${intent}`);
+
+      switch (intent) {
+        case "bookTable":
+          return { next: intent, call: { intent }, conversation }
+        case "takeAway":
+          return { next: intent, call: { intent }, conversation }
+        case "delivery":
+          return { next: intent, call: { intent }, conversation }
+      }
+    }
+
+    if (tool === "transfert_call_to_operator") {
+      return { next: "transfertCall" };
+    }
+  } else {
+    console.error("[UNDERSTAND-REQUEST] Error: no tool selected")
+
+    return { next: "end" };
+  }
 }
