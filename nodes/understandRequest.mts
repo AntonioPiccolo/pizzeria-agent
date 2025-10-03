@@ -27,7 +27,7 @@ export async function understandRequest(state: typeof StateAnnotation.State) {
   rl.close();
 
   let conversation = state.conversation
-  console.info(`[UNDERSTAND-REQUEST] Conversation: ${conversation}`)
+
   const result = await model.invoke([
     new SystemMessage(`# Sei il proprietario di una pizzeria al Fornareto e devi capire la richiesta del cliente.
 
@@ -76,7 +76,7 @@ export async function understandRequest(state: typeof StateAnnotation.State) {
 
       switch (intent) {
         case "bookTable":
-          return { next: intent, call: { intent }, conversation }
+          return { next: "bookTableInfoFromConversation", call: { intent }, conversation }
         case "takeAway":
           return { next: intent, call: { intent }, conversation }
         case "delivery":
