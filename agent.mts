@@ -7,6 +7,7 @@ import { takeAway } from './nodes/takeAway.mjs'
 import { delivery } from './nodes/delivery.mjs'
 import { transfertCall } from './nodes/transfertCall.mjs';
 import { addConversationMessage } from './utils/prompt.mjs';
+import { bookTableConfirmation } from './nodes/bookTableConfirmation.mjs';
 
 dotenv.config();
 
@@ -82,6 +83,8 @@ function bookTableRoute(state: typeof StateAnnotation.State): string {
   switch (state.next) {
     case "bookTable":
       return "bookTable";
+    case "bookTableConfirmation":
+      return "bookTableConfirmation";
     case "takeAway":
       return "takeAway";
     case "delivery":
@@ -100,6 +103,7 @@ const workflow = new StateGraph(StateAnnotation)
   .addNode("understandRequest", understandRequest)
   .addNode("bookTableInfoFromConversation", bookTableInfoFromConversation)
   .addNode("bookTable", bookTable)
+  .addNode("bookTableConfirmation", bookTableConfirmation)
   .addNode("takeAway", takeAway)
   .addNode("delivery", delivery)
   .addNode("transfertCall", transfertCall)
@@ -107,7 +111,7 @@ const workflow = new StateGraph(StateAnnotation)
   .addEdge("__start__", "start")
   .addEdge("start", "understandRequest")
   .addEdge("bookTableInfoFromConversation", "bookTable")
-  .addEdge("bookTable", "__end__")
+  .addEdge("bookTableConfirmation", "__end__")
   .addEdge("takeAway", "__end__")
   .addEdge("delivery", "__end__")
   .addEdge("transfertCall", "__end__")

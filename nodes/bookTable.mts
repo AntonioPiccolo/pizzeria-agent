@@ -51,8 +51,7 @@ export async function bookTable(state: typeof StateAnnotation.State) {
   const question = generateBookingQuestion(state.call.bookTable);
 
   if (!question) {
-    console.log(state.call.bookTable)
-    return { next: "__end__" };
+    return { next: "bookTableConfirmation" };
   }
 
   console.info(question)

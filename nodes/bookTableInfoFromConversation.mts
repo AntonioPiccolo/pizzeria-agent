@@ -14,8 +14,6 @@ export async function bookTableInfoFromConversation(state: typeof StateAnnotatio
 
   let conversation = state.conversation
 
-  console.info(`[BOOK-TABLE-INFO-FROM-CONVERSATION] Conversation: ${conversation}`)
-
   const modelWithStructuredOutput = llm.withStructuredOutput(bookTableSchema);
   const result = await modelWithStructuredOutput.invoke([
     new SystemMessage(`# Sai il propreitario di un locale e devi raccogliere le informazioni dallo Storico Conversazione utili per una prenotazione di un tavolo.
