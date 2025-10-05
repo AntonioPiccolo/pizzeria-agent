@@ -14,20 +14,49 @@ export async function bookTableInfoFromConversation(state: typeof StateAnnotatio
 
   let conversation = state.conversation
 
-  const modelWithStructuredOutput = llm.withStructuredOutput(bookTableSchema);
-  const result = await modelWithStructuredOutput.invoke([
-    new SystemMessage(`# Sai il propreitario di un locale e devi raccogliere le informazioni dallo Storico Conversazione utili per una prenotazione di un tavolo.
+  const bookModification = state.call?.bookTable?.name ? true : false; // Modifica prenotazione
+
+  let systemMessage
+  let humanMessage
+
+  if (bookModification) { // Modifica prenotazione
+    systemMessage = `# Sei il proprietario di un locale e devi modificare le informazioni di una prenotazione di un tavolo.
+
+      ## Dati raccolti della prenotazione da eventualmente modificare:
+      - Il numero di persone che vogliono prenotare un tavolo: ${state.call.bookTable.people}
+      - La data della prenotazione: ${state.call.bookTable.date}
+      - L'ora della prenotazione: ${state.call.bookTable.time}
+      - Il nome del cliente che sta prenotando il tavolo: ${state.call.bookTable.name}
+
+      ## IMPORTANTISSIMO - Modifica i dati raccolti se richiesto esplicitamente dall'utente, altrimenti ritorna i dati raccolti senza modifiche.
+      
+      ## Storico Conversazione:
+      ${conversation}`
+
+      humanMessage = `Modifica eventualmente i dati raccolti in riferimento allo storico della conversazione. Se non risultano moddifiche chiare restituisci i dati raccolti senza modifiche.`
+  } else { // Nuova prenotazione
+   systemMessage = `# Sei il proprietario di un locale e devi raccogliere le informazioni dallo Storico Conversazione utili per una prenotazione di un tavolo.
+
+      ## Informazioni temporali correnti:
+      - Data/ora attuale: ${state.currentDateTime} (${state.currentDayOfWeek})
+      - Fuso orario: Italia (Europe/Rome)
 
       ## Storico Conversazione:
-      ${conversation}
-      `),
-    new HumanMessage(`## Raccogli le seguenti informazioni, se presenti, per una prenotazione di un tavolo:
+      ${conversation}`
+
+    humanMessage = `## Raccogli le seguenti informazioni, se presenti, per una prenotazione di un tavolo:
       - Il numero di persone che vogliono prenotare un tavolo
       - La data della prenotazione
       - L'ora della prenotazione
       - Il nome del cliente che sta prenotando il tavolo
       
-      Se non sono presenti le informazioni in modo chiaro non restituirle.`)
+      Se non sono presenti le informazioni in modo chiaro non restituirle.`
+  }
+
+  const modelWithStructuredOutput = llm.withStructuredOutput(bookTableSchema);
+  const result = await modelWithStructuredOutput.invoke([
+    new SystemMessage(systemMessage),
+    new HumanMessage(humanMessage)
   ]);
 
   if (result) {

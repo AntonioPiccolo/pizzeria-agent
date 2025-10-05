@@ -8,6 +8,7 @@ import { delivery } from './nodes/delivery.mjs'
 import { transfertCall } from './nodes/transfertCall.mjs';
 import { addConversationMessage } from './utils/prompt.mjs';
 import { bookTableConfirmation } from './nodes/bookTableConfirmation.mjs';
+import { DateTime } from "luxon";
 
 dotenv.config();
 
@@ -20,6 +21,20 @@ export const StateAnnotation = Annotation.Root({
   conversation: Annotation<string>({
     reducer: (_prev, next) => next,
     default: () => ""
+  }),
+  currentDateTime: Annotation<string>({
+    reducer: (_prev, next) => next,
+    default: () => {
+      const currentDateTime = DateTime.now().setZone("Europe/Rome");
+      return currentDateTime.toLocaleString(DateTime.DATETIME_MED, { locale: "it" });
+    }
+  }),
+  currentDayOfWeek: Annotation<string>({
+    reducer: (_prev, next) => next,
+    default: () => {
+      const currentDateTime = DateTime.now().setZone("Europe/Rome");
+      return currentDateTime.setLocale("it").toFormat("EEEE");
+    }
   }),
   call: Annotation<{
     bookTable: {
@@ -53,8 +68,18 @@ async function start(state: typeof StateAnnotation.State) {
   console.log(question);
 
   const conversation = addConversationMessage(state.conversation, question, "agent");
+  
+  // Aggiorna data/ora corrente
+  const currentDateTime = DateTime.now().setZone("Europe/Rome");
+  const formattedDateTime = currentDateTime.toLocaleString(DateTime.DATETIME_MED, { locale: "it" });
+  const dayOfWeek = currentDateTime.setLocale("it").toFormat("EEEE");
 
-  return { next: "understandRequest", conversation };
+  return { 
+    next: "understandRequest", 
+    conversation,
+    currentDateTime: formattedDateTime,
+    currentDayOfWeek: dayOfWeek
+  };
 }
 
 // Routing
@@ -96,6 +121,15 @@ function bookTableRoute(state: typeof StateAnnotation.State): string {
   }
 }
 
+function bookTableConfirmationRoute(state: typeof StateAnnotation.State): string {
+  switch (state.next) {
+    case "bookTableInfoFromConversation":
+      return "bookTableInfoFromConversation";
+    default:
+      return "__end__";
+  }
+}
+
 // Graph construction
 const workflow = new StateGraph(StateAnnotation)
   // Nodes
@@ -111,14 +145,13 @@ const workflow = new StateGraph(StateAnnotation)
   .addEdge("__start__", "start")
   .addEdge("start", "understandRequest")
   .addEdge("bookTableInfoFromConversation", "bookTable")
-  .addEdge("bookTableConfirmation", "__end__")
   .addEdge("takeAway", "__end__")
   .addEdge("delivery", "__end__")
   .addEdge("transfertCall", "__end__")
   // Conditional edges
   .addConditionalEdges("understandRequest", understandRequestRoute)
   .addConditionalEdges("bookTable", bookTableRoute)
-  
+  .addConditionalEdges("bookTableConfirmation", bookTableConfirmationRoute)
 
 const app = workflow.compile();
 

@@ -51,7 +51,7 @@ export async function bookTable(state: typeof StateAnnotation.State) {
   const question = generateBookingQuestion(state.call.bookTable);
 
   if (!question) {
-    return { next: "bookTableConfirmation" };
+    return { next: "bookTableConfirmation", conversation: "" };
   }
 
   console.info(question)
@@ -67,6 +67,10 @@ export async function bookTable(state: typeof StateAnnotation.State) {
 
   const result = await model.invoke([
     new SystemMessage(`# Sei il proprietario di un locale e devi raccogliere le informazioni mancanti per una prenotazione di un tavolo.
+
+      ## Informazioni temporali correnti:
+      - Data/ora attuale: ${state.currentDateTime} (${state.currentDayOfWeek})
+      - Fuso orario: Italia (Europe/Rome)
       
       ## IMPORTANTISSIMO - Usare il tool transfert_call_to_operator per questi casi: 
       - se viene chiesto di parlare con qualcuno (operatore, personale o un nome di una persona)
@@ -107,9 +111,12 @@ export async function bookTable(state: typeof StateAnnotation.State) {
 
     if (tool === "retrieve_booking_info") {
       const informations = result.tool_calls[0].args;
+      console.info("[BOOK-TABLE] Retrieved informations:", informations);
 
+      // Filtra solo le chiavi valide dello schema
+      const validKeys = ['people', 'date', 'time', 'name'];
       for (const key in informations) {
-        if (informations[key]) {
+        if (validKeys.includes(key) && informations[key] !== null && informations[key] !== undefined) {
           state.call.bookTable[key] = informations[key];
         }
       }
