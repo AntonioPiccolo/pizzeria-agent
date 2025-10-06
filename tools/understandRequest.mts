@@ -26,3 +26,14 @@ export const requestDetection = tool(({ intent }: { intent: string }) => {
     .describe(`La richiesta del cliente, prenotare un tavolo, ordinare delle pizze d'asporto o con consegna delle pizze a domicilio.`),
   })
 })
+
+export const answerGeneralInformation = tool(({ answer }: { answer: string }) => {
+  console.log(`\n${answer}`);
+  return answer;
+}, {
+  name: 'answer_general_information',
+  description: 'Risponde a domande generali sul ristorante usando le informazioni disponibili.',
+  schema: z.object({
+    answer: z.string().describe('La risposta da fornire al cliente basata sulle informazioni disponibili del ristorante.')
+  })
+})

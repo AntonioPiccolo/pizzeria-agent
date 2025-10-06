@@ -8,6 +8,7 @@ import { delivery } from './nodes/delivery.mjs'
 import { transfertCall } from './nodes/transfertCall.mjs';
 import { addConversationMessage } from './utils/prompt.mjs';
 import { bookTableConfirmation } from './nodes/bookTableConfirmation.mjs';
+import { loadCacheData } from './nodes/loadCacheData.mts';
 import { DateTime } from "luxon";
 
 dotenv.config();
@@ -35,6 +36,10 @@ export const StateAnnotation = Annotation.Root({
       const currentDateTime = DateTime.now().setZone("Europe/Rome");
       return currentDateTime.setLocale("it").toFormat("EEEE");
     }
+  }),
+  generalInformations: Annotation<any>({
+    reducer: (_prev, next) => next,
+    default: () => ({})
   }),
   call: Annotation<{
     bookTable: {
@@ -75,7 +80,7 @@ async function start(state: typeof StateAnnotation.State) {
   const dayOfWeek = currentDateTime.setLocale("it").toFormat("EEEE");
 
   return { 
-    next: "understandRequest", 
+    next: "loadCacheData", 
     conversation,
     currentDateTime: formattedDateTime,
     currentDayOfWeek: dayOfWeek
@@ -140,6 +145,7 @@ function bookTableConfirmationRoute(state: typeof StateAnnotation.State): string
 const workflow = new StateGraph(StateAnnotation)
   // Nodes
   .addNode("start", start)
+  .addNode("loadCacheData", loadCacheData)
   .addNode("understandRequest", understandRequest)
   .addNode("bookTableInfoFromConversation", bookTableInfoFromConversation)
   .addNode("bookTable", bookTable)
@@ -149,7 +155,8 @@ const workflow = new StateGraph(StateAnnotation)
   .addNode("transfertCall", transfertCall)
   // Edges
   .addEdge("__start__", "start")
-  .addEdge("start", "understandRequest")
+  .addEdge("start", "loadCacheData")
+  .addEdge("loadCacheData", "understandRequest")
   .addEdge("bookTableInfoFromConversation", "bookTable")
   .addEdge("takeAway", "transfertCall")
   .addEdge("delivery", "transfertCall")
