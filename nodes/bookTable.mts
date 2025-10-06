@@ -13,7 +13,7 @@ const llm = new ChatOpenAI({
   temperature: 0,
 });
 
-const tools = [transfertCall, retrieveBookingInfo, requestDetection]
+const tools = [retrieveBookingInfo, requestDetection, transfertCall]
 
 const model = llm.bindTools(tools) as ChatOpenAI;
 
@@ -76,13 +76,13 @@ export async function bookTable(state: typeof StateAnnotation.State) {
       - se viene chiesto di parlare con qualcuno (operatore, personale o un nome di una persona)
       - se la richiesta è di una persona nervosa, arrabbiata o frustrata
 
-      ## IMPORTANTISSIMO - Usare SEMPRE il tool retrieve_booking_info quando:
-      - L'utente fornisce QUALSIASI informazione relativa alla prenotazione (numero persone, data, ora, nome)
-      - Devi SEMPRE estrarre e salvare queste informazioni usando il tool, anche se l'utente ne fornisce solo una
-
       ## IMPORTANTISSIMO - Usare SEMPRE il tool request_detection quando il cliente esplicita una delle seguenti richieste:
       - Ordinare delle pizze d'asporto
       - Ordinare delle pizze con consegna a domicilio
+
+      ## IMPORTANTISSIMO - Usare SEMPRE il tool retrieve_booking_info quando:
+      - L'utente fornisce QUALSIASI informazione relativa alla prenotazione (numero persone, data, ora, nome)
+      - Devi SEMPRE estrarre e salvare queste informazioni usando il tool, anche se l'utente ne fornisce solo una
       
       ### Esempi di quando usare retrieve_booking_info:
       - "Siamo in 3 persone" → usa il tool con {people: 3, date: null, time: null, name: null}
@@ -139,5 +139,6 @@ export async function bookTable(state: typeof StateAnnotation.State) {
       return { next: "transfertCall" };
     }
   }
+
   return { next: "bookTable", conversation };
 }

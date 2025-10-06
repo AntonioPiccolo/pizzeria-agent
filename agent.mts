@@ -123,8 +123,14 @@ function bookTableRoute(state: typeof StateAnnotation.State): string {
 
 function bookTableConfirmationRoute(state: typeof StateAnnotation.State): string {
   switch (state.next) {
-    case "bookTableInfoFromConversation":
-      return "bookTableInfoFromConversation";
+    case "bookTableConfirmation":
+      return "bookTableConfirmation";
+    case "takeAway":
+      return "takeAway";
+    case "delivery":
+      return "delivery";
+    case "transfertCall":
+      return "transfertCall";
     default:
       return "__end__";
   }
