@@ -2,6 +2,7 @@ import { StateAnnotation } from "../agent.mjs";
 import { ChatOpenAI } from "@langchain/openai";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { bookTableSchema } from "../utils/schemas.mjs";
+import { getPromptTemporalInformations, getPromptConversationHistory } from "../utils/prompt.mjs";
 
 // LLM with trasfer call tool
 const llm = new ChatOpenAI({
@@ -18,12 +19,9 @@ export async function bookTableInfoFromConversation(state: typeof StateAnnotatio
   const result = await modelWithStructuredOutput.invoke([
     new SystemMessage(`# Sei il proprietario di un locale e devi raccogliere le informazioni dallo Storico Conversazione utili per una prenotazione di un tavolo.
 
-      ## Informazioni temporali correnti:
-      - Data/ora attuale: ${state.currentDateTime} (${state.currentDayOfWeek})
-      - Fuso orario: Italia (Europe/Rome)
+      ${getPromptTemporalInformations(state)}
 
-      ## Storico Conversazione:
-      ${conversation}`),
+      ${getPromptConversationHistory(conversation)}`),
     new HumanMessage(`## Raccogli le seguenti informazioni, se presenti, per una prenotazione di un tavolo:
       - Il numero di persone che vogliono prenotare un tavolo
       - La data della prenotazione
@@ -36,13 +34,16 @@ export async function bookTableInfoFromConversation(state: typeof StateAnnotatio
       - Il numero di persone deve essere sempre menzionato in modo chiaro (es. "siamo in 3", "per 2 persone", "tavolo per 4")
       - NON ASSUMERE MAI che sia per 1, 2 o qualsiasi altro numero di persone se non specificato
       
-      Se non sono presenti le informazioni in modo chiaro non restituirle.
-      Se il cliente dice di voler prenotare un tavolo non significa per una persona, il numero di persone deve sempre essere esplicito.`)
+      ## NOTE MOLTO IMPORTANTE:
+      - Se non sono presenti le informazioni in modo chiaro non restituirle, non inventare nulla.
+      - Se il cliente dice di voler prenotare un tavolo non significa per una persona, il numero di persone deve sempre essere esplicito.`)
   ]);
 
   if (result) {
     return { next: "bookTable", call: { bookTable: result }, conversation: "" };
-  }
+  } else {
+    console.error("[BOOK-TABLE-INFO-FROM-CONVERSATION] Error: no result")
 
-  return { next: "bookTable", conversation: "" };
+    return { next: "end" };
+  }
 }

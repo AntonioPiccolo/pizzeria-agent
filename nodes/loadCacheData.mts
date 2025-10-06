@@ -7,8 +7,6 @@ export async function loadCacheData(state: any) {
     const data = await fs.readFile(jsonPath, 'utf8');
     const generalInformations = JSON.parse(data);
     
-    console.log("Informazioni del ristorante caricate con successo");
-    
     return {
       ...state,
       generalInformations,

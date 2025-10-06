@@ -4,8 +4,8 @@ import { transfertCall } from "../tools/general.mjs";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { retrieveBookingInfo } from "../tools/bookTable.mjs";
 import { createInterface } from "readline/promises";
-import { addConversationMessage } from "../utils/prompt.mjs";
-import { requestDetection } from "../tools/understandRequest.mjs";
+import { addConversationMessage, getPromptGeneralInformations, getPromptToolGeneralInformations, getPromptToolTransfertCall, getPromptToolRequestDetection, getPromptTemporalInformations, getPromptConversationHistory } from "../utils/prompt.mjs";
+import { requestDetection, answerGeneralInformation } from "../tools/understandRequest.mjs";
 
 // LLM with trasfer call tool
 const llm = new ChatOpenAI({
@@ -13,7 +13,7 @@ const llm = new ChatOpenAI({
   temperature: 0,
 });
 
-const tools = [retrieveBookingInfo, requestDetection, transfertCall]
+const tools = [retrieveBookingInfo, requestDetection, transfertCall, answerGeneralInformation]
 
 const model = llm.bindTools(tools) as ChatOpenAI;
 
@@ -68,17 +68,12 @@ export async function bookTable(state: typeof StateAnnotation.State) {
   const result = await model.invoke([
     new SystemMessage(`# Sei il proprietario di un locale e devi raccogliere le informazioni mancanti per una prenotazione di un tavolo.
 
-      ## Informazioni temporali correnti:
-      - Data/ora attuale: ${state.currentDateTime} (${state.currentDayOfWeek})
-      - Fuso orario: Italia (Europe/Rome)
-      
-      ## IMPORTANTISSIMO - Usare il tool transfert_call_to_operator per questi casi: 
-      - se viene chiesto di parlare con qualcuno (operatore, personale o un nome di una persona)
-      - se la richiesta è di una persona nervosa, arrabbiata o frustrata
+      ${getPromptGeneralInformations(state.generalInformations)}
+      ${getPromptTemporalInformations(state)}
 
-      ## IMPORTANTISSIMO - Usare SEMPRE il tool request_detection quando il cliente esplicita una delle seguenti richieste:
-      - Ordinare delle pizze d'asporto
-      - Ordinare delle pizze con consegna a domicilio
+      ${getPromptToolGeneralInformations()}
+      ${getPromptToolRequestDetection()}
+      ${getPromptToolTransfertCall()}
 
       ## IMPORTANTISSIMO - Usare SEMPRE il tool retrieve_booking_info quando:
       - L'utente fornisce QUALSIASI informazione relativa alla prenotazione (numero persone, data, ora, nome)
@@ -96,8 +91,7 @@ export async function bookTable(state: typeof StateAnnotation.State) {
       - L'ora della prenotazione
       - Il nome del cliente che sta prenotando il tavolo
 
-      ## Storico Conversazione:
-      ${conversation}
+      ${getPromptConversationHistory(conversation)}
       `),
     new HumanMessage(`${question}\n${userInput}`)
   ]);
@@ -124,6 +118,15 @@ export async function bookTable(state: typeof StateAnnotation.State) {
       return { next: "bookTable", call: { bookTable: state.call.bookTable }, conversation };
     }
 
+    if (tool === "answer_general_information") {
+      const answer = result.tool_calls[0].args?.answer;
+      console.log(`\n${answer}`);
+
+      conversation = addConversationMessage(conversation, answer, "agent");
+
+      return { next: "bookTable", conversation };
+    }
+
     if (tool === "request_detection") {
       const intent = result.tool_calls[0].args?.intent;
 
@@ -138,7 +141,9 @@ export async function bookTable(state: typeof StateAnnotation.State) {
     if (tool === "transfert_call_to_operator") {
       return { next: "transfertCall" };
     }
-  }
+  } else {
+    console.error("[BOOK-TABLE] Error: no tool selected")
 
-  return { next: "bookTable", conversation };
+    return { next: "end" };
+  }
 }

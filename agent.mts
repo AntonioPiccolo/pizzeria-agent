@@ -121,6 +121,8 @@ function bookTableRoute(state: typeof StateAnnotation.State): string {
       return "delivery";
     case "transfertCall":
       return "transfertCall";
+    case "end":
+      return "__end__";
     default:
       return "__end__";
   }
@@ -136,6 +138,8 @@ function bookTableConfirmationRoute(state: typeof StateAnnotation.State): string
       return "delivery";
     case "transfertCall":
       return "transfertCall";
+    case "end":
+      return "__end__";
     default:
       return "__end__";
   }
