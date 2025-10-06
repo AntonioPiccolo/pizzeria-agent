@@ -44,6 +44,6 @@ export async function bookTableInfoFromConversation(state: typeof StateAnnotatio
   } else {
     console.error("[BOOK-TABLE-INFO-FROM-CONVERSATION] Error: no result")
 
-    return { next: "end" };
+    return { next: "transfertCall" };
   }
 }

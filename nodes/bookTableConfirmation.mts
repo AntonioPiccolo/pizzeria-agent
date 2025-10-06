@@ -106,7 +106,7 @@ async function handleBookModifications(
   } else {
     console.error("[BOOK-TABLE-CONFIRMATION] Error: no tool selected")
 
-    return { next: "end" };
+    return { next: "transfertCall" };
   }
 }
 
@@ -204,6 +204,6 @@ export async function bookTableConfirmation(state: typeof StateAnnotation.State)
   } else {
     console.error("[BOOK-TABLE-CONFIRMATION] Error: no tool selected")
 
-    return { next: "end" };
+    return { next: "transfertCall" };
   }
 }

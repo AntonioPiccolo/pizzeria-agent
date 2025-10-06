@@ -144,6 +144,6 @@ export async function bookTable(state: typeof StateAnnotation.State) {
   } else {
     console.error("[BOOK-TABLE] Error: no tool selected")
 
-    return { next: "end" };
+    return { next: "transfertCall" };
   }
 }

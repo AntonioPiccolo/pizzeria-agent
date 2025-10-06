@@ -97,6 +97,6 @@ export async function understandRequest(state: typeof StateAnnotation.State) {
   } else {
     console.error("[UNDERSTAND-REQUEST] Error: no tool selected")
 
-    return { next: "end" };
+    return { next: "transfertCall" };
   }
 }
