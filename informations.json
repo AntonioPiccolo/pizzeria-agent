@@ -18,8 +18,86 @@
     "takeaway": true,
     "tableReservation": true
   },
-  "deliveryInfo": {
-    "deliveryFee": 2.5,
-    "estimatedTime": "30-45 minuti"
+  "tableReservationInfo": {
+    "petAllowed": true
+  },
+  "menu": {
+    "pizza": {
+      "available": true,
+      "doughTypes": [
+        {
+          "name": "Classico",
+          "description": "Impasto tradizionale con lievitazione 24 ore"
+        },
+        {
+          "name": "Integrale",
+          "description": "Impasto con farina integrale"
+        },
+        {
+          "name": "Farro e segale",
+          "description": "Impasto con farina di farro e segale"
+        },
+        {
+          "name": "Napoletano",
+          "description": "Impasto più spesso e soffice"
+        },
+        {
+          "name": "Senza Glutine",
+          "description": "Impasto per celiaci"
+        }
+      ],
+      "categories": [
+        "Pizze Classiche",
+        "Focacce",
+        "Calzoni"
+      ]
+    },
+    "restaurant": {
+      "available": false,
+      "dishCategories": [
+        {
+          "name": "Antipasti",
+          "examples": ["Bruschette miste", "Tagliere di salumi e formaggi", "Carpaccio di manzo"]
+        },
+        {
+          "name": "Primi Piatti",
+          "examples": ["Risotto ai frutti di mare", "Bigoli all'anatra", "Gnocchi di patate"]
+        },
+        {
+          "name": "Secondi Piatti",
+          "subcategories": [
+            {
+              "name": "Carne",
+              "examples": ["Tagliata di manzo", "Costolette di agnello", "Pollo alla griglia"]
+            },
+            {
+              "name": "Pesce",
+              "examples": ["Branzino al sale", "Grigliata mista di pesce", "Salmone in crosta"]
+            }
+          ]
+        },
+        {
+          "name": "Contorni",
+          "examples": ["Verdure grigliate", "Patate al forno", "Insalata mista"]
+        },
+        {
+          "name": "Dolci",
+          "examples": ["Tiramisù", "Panna cotta", "Cheesecake"]
+        }
+      ]
+    },
+    "beverages": {
+      "categories": [
+        "Vini",
+        "Birre",
+        "Bibite",
+        "Caffetteria"
+      ]
+    },
+    "specialDiets": {
+      "vegetarian": true,
+      "vegan": true,
+      "glutenFree": true
+    }
   }
 }

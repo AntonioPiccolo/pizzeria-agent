@@ -41,11 +41,12 @@ export async function understandRequest(state: typeof StateAnnotation.State) {
       - Rispondere a domande generali sul ristorante (orari, indirizzo, telefono, servizi)
 
       ${getPromptToolGeneralInformations()}
-      ${getPromptToolRequestDetection('understandRequest')}
-      ${getPromptToolTransfertCall(true)}
+      ${getPromptToolRequestDetection()}
+      ${getPromptToolTransfertCall()}
       
-      ## Usare il tool ask_again_to_understand_request per i seguenti casi:
+      ## Usare il tool ask_again_to_understand_request per i seguenti casi (considera sempre anche lo storico della conversazione):
       - Se domanda/richiesta non è del tutto chiara, esempio: 'Vorrei delle pizze' (si intende pizze d'asporto o consegnare a domicilio?)
+      ### IMPORTANTE: considera sempre anche lo storico della conversazione, ad esempio se l'utente ha chiesto se facciamo consegna a domicilio, vuol dire che vuole ordinare delle pizze con consegna a domicilio.
       
       ${getPromptConversationHistory(conversation)}
       `),
